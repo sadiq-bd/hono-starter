@@ -1,18 +1,20 @@
 import { Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import { contextStorage } from "hono/context-storage";
-// import tokenized from "./routes/tokenized";
+import { globalErrorHandler, notFoundHandler } from "./core/errors";
+import authRoutes from "./features/auth/routes";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
+
+// Global Middlewares
 app.use(cors());
 app.use(contextStorage());
 
-// app.route('/token', tokenized);
+// Feature Routes
+app.route('/token', authRoutes);
 
-app.notFound((c: Context) => c.json({ message: 'Not found' }, 404));
-app.onError((err, c: Context) => {
-  console.error(err);
-  return c.json({ message: 'Internal server error' }, 500);
-});
+// Error Handlers
+app.notFound(notFoundHandler);
+app.onError(globalErrorHandler);
 
 export default app;
